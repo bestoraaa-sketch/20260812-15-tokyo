@@ -362,12 +362,15 @@
           </div>
 
           <!-- 右側行程內容框 -->
-          <div class="card-content">
-            <button class="edit-btn" onclick="editSpot('${spot.id}', '${spot.time}', '${safeTitle}', '${safeDesc}')">✏️</button>
-            <div class="card-title">${spot.title}</div>
-            <div class="card-desc">${spot.desc || ''}</div>
-            ${qrSection}
-          </div>
+        <div class="card-content">
+  <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 6px;">
+    <button class="edit-btn" style="position:static;" onclick="editSpot('${spot.id}', '${spot.time}', '${safeTitle}', '${safeDesc}')">✏️</button>
+    <button class="edit-btn" style="position:static;" onclick="deleteSpot('${spot.id}', '${safeTitle}')">🗑️</button>
+  </div>
+  <div class="card-title">${spot.title}</div>
+  <div class="card-desc">${spot.desc || ''}</div>
+  ${qrSection}
+</div>
         `;
         listEl.appendChild(row);
       });
@@ -397,6 +400,20 @@
         alert("✨ 已成功更新並即時同步給所有人！");
       } catch (error) {
         alert("更新失敗：" + error.message);
+      }
+    };
+
+    // 獨立的刪除按鈕 🗑️ 觸發函式
+    window.deleteSpot = async function(docId, title) {
+      const confirmDelete = confirm(`⚠️ 確定要刪除「${title}」嗎？\n\n刪除後所有人的手機都會同步移除，無法復原喔！`);
+      if (confirmDelete) {
+        try {
+          const docRef = doc(db, "itinerary", docId);
+          await deleteDoc(docRef);
+          alert("🗑️ 行程已成功刪除！");
+        } catch (error) {
+          alert("刪除失敗：" + error.message);
+        }
       }
     };
 
