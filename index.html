@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我們的旅遊小工具</title>
+  <style>
+    body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 0 15px; }
+    h1, h2 { color: #2c3e50; }
+    .card { background: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; }
+    input { width: 100%; padding: 8px; margin: 5px 0 10px 0; box-sizing: border-box; }
+    button { background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 5px; width: 100%; cursor: pointer; font-size: 16px; }
+    button:hover { background: #2980b9; }
+    ul { list-style: none; padding: 0; }
+    li { background: white; border-bottom: 1px solid #eee; padding: 10px; display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+
+  <h1>✈️ 旅遊分攤記帳</h1>
+
+  <!-- 新增記帳區塊 -->
+  <div class="card">
+    <h2>新增一筆花費</h2>
+    <label>誰付的錢？</label>
+    <input type="text" id="payer" placeholder="例如：小明">
+    
+    <label>花費項目：</label>
+    <input type="text" id="itemName" placeholder="例如：晚餐拉麵">
+    
+    <label>金額：</label>
+    <input type="number" id="itemAmount" placeholder="例如：300">
+    
+    <button id="addBtn">新增紀錄</button>
+  </div>
+
+  <!-- 記帳資料清單 -->
+  <div class="card">
+    <h2>所有花費明細 (即時同步)</h2>
+    <ul id="expenseList">載入中...</ul>
+  </div>
+
+  <!-- 引入 Firebase SDK (CDN 方式，免安裝) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // ⚠️ 請在此處替換成你之前在 Firebase 獲得的 firebaseConfig 資訊！
+const firebaseConfig = {
+    apiKey: "AIzaSyCXUOhXBoeUlYNAgLlfavfjBcX3A7hjO5M",
+    authDomain: "tokyo-1bf69.firebaseapp.com",
+    projectId: "tokyo-1bf69",
+    storageBucket: "tokyo-1bf69.firebasestorage.app",
+    messagingSenderId: "918263660407",
+    appId: "1:918263660407:web:5fa52d2e7e95dcf0186b72",
+    measurementId: "G-JXDX40G20R"
+  };
+
+    // 初始化 Firebase 與 Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 1. 點擊按鈕新增花費到雲端資料庫
+    document.getElementById('addBtn').addEventListener('click', async () => {
+      const payer = document.getElementById('payer').value.trim();
+      const name = document.getElementById('itemName').value.trim();
+      const amount = document.getElementById('itemAmount').value.trim();
+
+      if (!payer || !name || !amount) {
+        alert('請填寫完整內容！');
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "expenses"), {
+          payer: payer,
+          name: name,
+          amount: Number(amount),
+          createdAt: new Date()
+        });
+        
+        // 清空輸入框
+        document.getElementById('itemName').value = '';
+        document.getElementById('itemAmount').value = '';
+      } catch (error) {
+        console.error("寫入錯誤：", error);
+        alert("資料寫入失敗，請確認 Firebase 設定。");
+      }
+    });
+
+    // 2. 即時監聽資料庫變動 (不論是誰新增，畫面都會即時更新)
+    const q = query(collection(db, "expenses"), orderBy("createdAt", "desc"));
+    onSnapshot(q, (snapshot) => {
+      const list = document.getElementById('expenseList');
+      list.innerHTML = '';
+
+      if (snapshot.empty) {
+        list.innerHTML = '<li>目前還沒有記帳紀錄喔！</li>';
+        return;
+      }
+
+      snapshot.forEach((doc) => {
+        const item = doc.data();
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span><b>${item.payer}</b> 付了 <b>${item.name}</b></span>
+          <span>$${item.amount}</span>
+        `;
+        list.appendChild(li);
+      });
+    });
+  </script>
+</body>
+</html>
