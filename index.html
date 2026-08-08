@@ -376,12 +376,12 @@
       });
     }
 
-    // 渲染卡片：左邊時間、右邊行程
+// 渲染卡片：左邊時間、右邊行程
     function renderItinerary(spots) {
       const listEl = document.getElementById('itinerary-list');
       listEl.innerHTML = '';
 
-      if (spots.length === 0) {
+      if (!spots || spots.length === 0) {
         listEl.innerHTML = '<div class="card-row"><div class="card-content" style="text-align:center; color:#666;">這一天還沒有行程，可以在下方新增喔！</div></div>';
         return;
       }
@@ -395,9 +395,11 @@
         if (spot.type === 'transport') { typeClass = 'type-transport'; typeName = '🚌 交通'; }
         if (spot.type === 'flight') { typeClass = 'type-flight'; typeName = '✈️ 航班'; }
 
+        // 處理特殊按鈕區 (入境 QR Code & Skyliner 換票)
         let qrSection = '';
-let qrSection = '';
-        if (spot.title.includes('入境QR Code')) {
+        const titleText = spot.title || '';
+        
+        if (titleText.includes('入境QR Code')) {
           qrSection = `
             <div class="member-btns" style="margin-top: 10px;">
               <div class="member-btn" onclick="toggleQR('美婷')">美婷</div>
@@ -405,7 +407,7 @@ let qrSection = '';
               <div class="member-btn" onclick="toggleQR('桃')">桃</div>
             </div>
           `;
-        } else if (spot.title.includes('京成上野') || spot.title.includes('Skyliner')) {
+        } else if (titleText.includes('京成上野') || titleText.includes('Skyliner')) {
           qrSection = `
             <div class="member-btns" style="margin-top: 10px; grid-template-columns: repeat(2, 1fr);">
               <div class="member-btn" onclick="toggleSkyliner('location')">📍 換票地點</div>
@@ -415,26 +417,26 @@ let qrSection = '';
         }
 
         // 跳脫字串保護
-        const safeTitle = (spot.title || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        const safeTitle = titleText.replace(/'/g, "\\'").replace(/"/g, "&quot;");
         const safeDesc = (spot.desc || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
         row.innerHTML = `
           <!-- 左側時間框 -->
           <div class="time-box">
-         <span class="time-badge">${spot.time || '未定'}</span>
+            <span class="time-badge">${spot.time || '未定'}</span>
             <span class="type-tag ${typeClass}">${typeName}</span>
           </div>
 
           <!-- 右側行程內容框 -->
-        <div class="card-content">
-  <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 6px;">
-<button class="edit-btn" style="position:static;" onclick="editSpot('${spot.id}', '${spot.time}', '${safeTitle}', '${safeDesc}', '${spot.type}')">✏️</button>
-    <button class="edit-btn" style="position:static;" onclick="deleteSpot('${spot.id}', '${safeTitle}')">🗑️</button>
-  </div>
-  <div class="card-title">${spot.title}</div>
-  <div class="card-desc">${spot.desc || ''}</div>
-  ${qrSection}
-</div>
+          <div class="card-content">
+            <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 6px;">
+              <button class="edit-btn" style="position:static;" onclick="editSpot('${spot.id}', '${spot.time || ''}', '${safeTitle}', '${safeDesc}', '${spot.type || 'spot'}')">✏️</button>
+              <button class="edit-btn" style="position:static;" onclick="deleteSpot('${spot.id}', '${safeTitle}')">🗑️</button>
+            </div>
+            <div class="card-title">${titleText}</div>
+            <div class="card-desc">${spot.desc || ''}</div>
+            ${qrSection}
+          </div>
         `;
         listEl.appendChild(row);
       });
@@ -512,7 +514,7 @@ let qrSection = '';
       modal.style.display = 'none';
     };
 
-    // 顯示 Skyliner 換票地點 / QR Code Pop-up
+// 顯示 Skyliner 換票地點 / QR Code Pop-up
     window.toggleSkyliner = function(type) {
       let imgFile = '';
       let titleName = '';
@@ -525,13 +527,17 @@ let qrSection = '';
         titleName = 'Skyliner 換票 QR Code';
       }
 
-      document.getElementById('modal-qr-name').innerText = titleName;
-      document.getElementById('modal-qr-img').src = imgFile;
-      
+      const modalName = document.getElementById('modal-qr-name');
+      const modalImg = document.getElementById('modal-qr-img');
       const modal = document.getElementById('qr-modal');
-      modal.style.display = 'flex';
-    };
 
+      if (modalName && modalImg && modal) {
+        modalName.innerText = titleName;
+        modalImg.src = imgFile;
+        modal.style.display = 'flex';
+      }
+    };
+    
 // 手動新增行程 (取消欄位限制)
     window.addNewSpot = async function() {
       const time = document.getElementById('newTime').value;
