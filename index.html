@@ -396,12 +396,20 @@
         if (spot.type === 'flight') { typeClass = 'type-flight'; typeName = '✈️ 航班'; }
 
         let qrSection = '';
-  if (spot.title.includes('入境QR Code')) {
+let qrSection = '';
+        if (spot.title.includes('入境QR Code')) {
           qrSection = `
             <div class="member-btns" style="margin-top: 10px;">
               <div class="member-btn" onclick="toggleQR('美婷')">美婷</div>
               <div class="member-btn" onclick="toggleQR('麗婷')">麗婷</div>
               <div class="member-btn" onclick="toggleQR('桃')">桃</div>
+            </div>
+          `;
+        } else if (spot.title.includes('京成上野') || spot.title.includes('Skyliner')) {
+          qrSection = `
+            <div class="member-btns" style="margin-top: 10px; grid-template-columns: repeat(2, 1fr);">
+              <div class="member-btn" onclick="toggleSkyliner('location')">📍 換票地點</div>
+              <div class="member-btn" onclick="toggleSkyliner('qr')">🎟️ 換票 QR Code</div>
             </div>
           `;
         }
@@ -502,6 +510,26 @@
     window.closeQRModal = function(event) {
       const modal = document.getElementById('qr-modal');
       modal.style.display = 'none';
+    };
+
+    // 顯示 Skyliner 換票地點 / QR Code Pop-up
+    window.toggleSkyliner = function(type) {
+      let imgFile = '';
+      let titleName = '';
+
+      if (type === 'location') {
+        imgFile = '換票地點.png';
+        titleName = 'Skyliner 換票地點';
+      } else if (type === 'qr') {
+        imgFile = 'skylinerqr.png';
+        titleName = 'Skyliner 換票 QR Code';
+      }
+
+      document.getElementById('modal-qr-name').innerText = titleName;
+      document.getElementById('modal-qr-img').src = imgFile;
+      
+      const modal = document.getElementById('qr-modal');
+      modal.style.display = 'flex';
     };
 
 // 手動新增行程 (取消欄位限制)
