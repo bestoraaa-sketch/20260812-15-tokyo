@@ -43,8 +43,19 @@
       z-index: 100; 
       text-align: center; 
     }
-    header h1 { font-size: 18px; font-weight: 600; letter-spacing: 1px; color: var(--text-main); }
+    header h1 { 
+  font-size: 18px; 
+  font-weight: 600; 
+  letter-spacing: 1px; 
+  color: var(--text-main); 
+  text-decoration: none; /* 移除任何底線 */
+}
 
+/* 防止手機強制把它渲染成藍色連結 */
+header h1 a, header h1 {
+  color: inherit !important;
+  text-decoration: none !important;
+}
     /* 天氣資訊列 */
     .weather-bar { 
       background: rgba(239, 236, 230, 0.85); 
@@ -123,6 +134,8 @@
 
   <header>
     <h1>20260812-15 東京 🌸</h1>
+    <!-- 禁止手機瀏覽器把數字自動轉成電話連結 -->
+<meta name="format-detection" content="telephone=no">
   </header>
 
   <!-- 即時天氣列 -->
