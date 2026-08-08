@@ -364,7 +364,7 @@
           <!-- 右側行程內容框 -->
         <div class="card-content">
   <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 6px;">
-    <button class="edit-btn" style="position:static;" onclick="editSpot('${spot.id}', '${spot.time}', '${safeTitle}', '${safeDesc}')">✏️</button>
+<button class="edit-btn" style="position:static;" onclick="editSpot('${spot.id}', '${spot.time}', '${safeTitle}', '${safeDesc}', '${spot.type}')">✏️</button>
     <button class="edit-btn" style="position:static;" onclick="deleteSpot('${spot.id}', '${safeTitle}')">🗑️</button>
   </div>
   <div class="card-title">${spot.title}</div>
@@ -376,24 +376,35 @@
       });
     }
 
-// 點擊鉛筆 ✏️ 編輯行程 (三行分開輸入，按取消可保留原值)
-    window.editSpot = async function(docId, oldTime, oldTitle, oldDesc) {
-      // 第一行：時間
-      const newTime = prompt("【1/3】修改時間 (Time)：", oldTime);
-      if (newTime === null) return; // 按取消則放棄修改
+// 點擊鉛筆 ✏️ 編輯行程 (包含類型切換)
+    window.editSpot = async function(docId, oldTime, oldTitle, oldDesc, oldType = 'spot') {
+      // 1. 修改時間
+      const newTime = prompt("【1/4】修改時間 (Time)：", oldTime);
+      if (newTime === null) return;
 
-      // 第二行：標題 (Subject)
-      const newTitle = prompt("【2/3】修改標題 (Subject)：", oldTitle);
+      // 2. 修改類型 (標籤)
+      const newTypeInput = prompt("【2/4】選擇類別標籤：\n輸入 1 ➔ 📍 景點/活動\n輸入 2 ➔ 🚌 交通\n輸入 3 ➔ ✈️ 航班/手續", 
+        oldType === 'transport' ? '2' : (oldType === 'flight' ? '3' : '1')
+      );
+      if (newTypeInput === null) return;
+
+      let newType = 'spot';
+      if (newTypeInput.trim() === '2') newType = 'transport';
+      if (newTypeInput.trim() === '3') newType = 'flight';
+
+      // 3. 修改標題
+      const newTitle = prompt("【3/4】修改標題 (Subject)：", oldTitle);
       if (newTitle === null) return; 
 
-      // 第三行：備註內容 (Content)
-      const newDesc = prompt("【3/3】修改內容/備註 (Content)：", oldDesc);
+      // 4. 修改內容
+      const newDesc = prompt("【4/4】修改內容/備註 (Content)：", oldDesc);
       if (newDesc === null) return; 
 
       try {
         const docRef = doc(db, "itinerary", docId);
         await updateDoc(docRef, {
           time: newTime.trim(),
+          type: newType,
           title: newTitle.trim(),
           desc: newDesc.trim()
         });
