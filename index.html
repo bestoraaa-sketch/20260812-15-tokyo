@@ -3,49 +3,154 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>我們的旅遊小工具</title>
+  <title>東京旅樂 2026</title>
+  <!-- Muji 簡約配色與手機原生 App 視覺 -->
   <style>
-    body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 0 15px; }
-    h1, h2 { color: #2c3e50; }
-    .card { background: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; }
-    input { width: 100%; padding: 8px; margin: 5px 0 10px 0; box-sizing: border-box; }
-    button { background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 5px; width: 100%; cursor: pointer; font-size: 16px; }
-    button:hover { background: #2980b9; }
-    ul { list-style: none; padding: 0; }
-    li { background: white; border-bottom: 1px solid #eee; padding: 10px; display: flex; justify-content: space-between; }
+    :root {
+      --bg-color: #f7f5f0;
+      --card-bg: #ffffff;
+      --text-main: #333333;
+      --text-sub: #7f7f7f;
+      --accent-red: #7f1d1d;
+      --border-color: #e5e3dd;
+      --tag-transport: #eef2f5;
+      --tag-flight: #fef3c7;
+      --tag-spot: #e6f4ea;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; -webkit-font-smoothing: antialiased; }
+
+    /* 頂部 Header */
+    header { background: var(--card-bg); padding: 16px 20px; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; text-align: center; }
+    header h1 { font-size: 18px; font-weight: 500; letter-spacing: 1px; color: var(--text-main); }
+
+    /* 天氣資訊列 */
+    .weather-bar { background: #efece6; padding: 8px 16px; font-size: 13px; color: var(--text-sub); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+
+    /* 日期天數切換按鈕 (Horizontal Scroll) */
+    .day-selector { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; background: var(--bg-color); scrollbar-width: none; }
+    .day-selector::-webkit-scrollbar { display: none; }
+    .day-btn { flex: 0 0 auto; padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--card-bg); font-size: 14px; color: var(--text-sub); cursor: pointer; transition: all 0.2s; }
+    .day-btn.active { background: var(--text-main); color: #ffffff; border-color: var(--text-main); font-weight: 500; }
+
+    /* 主要內容容器 */
+    .container { padding: 16px; max-width: 500px; margin: 0 auto; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* 行程卡片設計 */
+    .card { background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .time-badge { font-size: 14px; font-weight: 600; color: var(--text-main); background: #f0f0f0; padding: 2px 8px; border-radius: 4px; }
+    .type-tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; color: var(--text-sub); }
+    .type-transport { background: var(--tag-transport); }
+    .type-flight { background: var(--tag-flight); }
+    .type-spot { background: var(--tag-spot); }
+    .card-title { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+    .card-desc { font-size: 13px; color: var(--text-sub); line-height: 1.4; }
+
+    /* 入境 QR Code 按鈕區 */
+    .member-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+    .member-btn { padding: 8px; background: #f5f4f0; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; color: var(--text-main); text-align: center; cursor: pointer; }
+    .qr-preview { margin-top: 10px; text-align: center; display: none; padding: 10px; background: #fafafa; border-radius: 8px; border: 1px dashed #ccc; }
+    .qr-preview img { max-width: 100%; height: auto; border-radius: 6px; }
+
+    /* 新增行程表單區塊 */
+    .add-form { margin-top: 20px; background: #f0eee8; padding: 16px; border-radius: 12px; }
+    .add-form h3 { font-size: 14px; margin-bottom: 10px; color: var(--text-main); }
+    .add-form input, .add-form select { width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; background: white; }
+    .add-form button { width: 100%; padding: 10px; background: var(--text-main); color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; }
+
+    /* 底部 Tab 導覽列 (原生 App 感受) */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: var(--card-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: var(--text-sub); text-decoration: none; cursor: pointer; }
+    .nav-item.active { color: var(--text-main); font-weight: 600; }
+    .nav-icon { font-size: 18px; margin-bottom: 2px; }
   </style>
 </head>
 <body>
 
-  <h1>✈️ 旅遊分攤記帳</h1>
+  <header>
+    <h1>TOKYO TRIP 2026</h1>
+  </header>
 
-  <!-- 新增記帳區塊 -->
-  <div class="card">
-    <h2>新增一筆花費</h2>
-    <label>誰付的錢？</label>
-    <input type="text" id="payer" placeholder="例如：小明">
-    
-    <label>花費項目：</label>
-    <input type="text" id="itemName" placeholder="例如：晚餐拉麵">
-    
-    <label>金額：</label>
-    <input type="number" id="itemAmount" placeholder="例如：300">
-    
-    <button id="addBtn">新增紀錄</button>
+  <!-- 即時天氣列 -->
+  <div class="weather-bar">
+    <span>📍 東京, 日本</span>
+    <span>🌤️ 28°C (預報：晴時多雲)</span>
   </div>
 
-  <!-- 記帳資料清單 -->
-  <div class="card">
-    <h2>所有花費明細 (即時同步)</h2>
-    <ul id="expenseList">載入中...</ul>
+  <!-- 5 天按鈕列 -->
+  <div class="day-selector">
+    <button class="day-btn" onclick="switchDay('8-12')" id="btn-8-12">8/12 (三)</button>
+    <button class="day-btn" onclick="switchDay('8-13')" id="btn-8-13">8/13 (四)</button>
+    <button class="day-btn" onclick="switchDay('8-14')" id="btn-8-14">8/14 (五)</button>
+    <button class="day-btn" onclick="switchDay('8-15')" id="btn-8-15">8/15 (六)</button>
+    <button class="day-btn" onclick="switchDay('8-16')" id="btn-8-16">8/16 (日)</button>
   </div>
 
-  <!-- 引入 Firebase SDK (CDN 方式，免安裝) -->
+  <div class="container">
+    
+    <!-- 主頁面：每日行程 -->
+    <div id="page-itinerary" class="page active">
+      
+      <!-- 動態載入並自動排序的行程清單 -->
+      <div id="itinerary-list"></div>
+
+      <!-- 手動新增行程 (即時同步至 Firebase) -->
+      <div class="add-form">
+        <h3>➕ 加插新行程</h3>
+        <input type="time" id="newTime">
+        <input type="text" id="newTitle" placeholder="景點/事項名稱">
+        <select id="newType">
+          <option value="spot">📍 景點/活動</option>
+          <option value="transport">🚌 交通</option>
+          <option value="flight">✈️ 航班/手續</option>
+        </select>
+        <input type="text" id="newDesc" placeholder="備註細節">
+        <button onclick="addNewSpot()">新增至當天行程</button>
+      </div>
+    </div>
+
+    <!-- 資訊工具頁面：航班/住宿 -->
+    <div id="page-info" class="page">
+      <div class="card">
+        <div class="card-title">✈️ 航班資訊</div>
+        <div class="card-desc" style="margin-top:8px;">
+          <b>去程：</b> 8/12 10:35 - 16:05 (PYTSKT)<br>
+          <b>回程：</b> 8/15 (依行程填寫)
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🏨 住宿資訊</div>
+        <div class="card-desc" style="margin-top:8px;">
+          <b>飯店名稱：</b> 上野周邊飯店 (待定)<br>
+          <b>交通：</b> 搭乘 Skyliner 至京成上野站徒步即達
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 底部固定導覽列 -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('itinerary')" id="nav-itinerary">
+      <div class="nav-icon">📅</div>
+      <span>行程</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('info')" id="nav-info">
+      <div class="nav-icon">🧳</div>
+      <span>資訊/住宿</span>
+    </div>
+  </nav>
+
+  <!-- 串接 Firebase CDN -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // ⚠️ 請在此處替換成你之前在 Firebase 獲得的 firebaseConfig 資訊！
+    // ⚠️ 請替換為你之前獲得的 firebaseConfig
 const firebaseConfig = {
     apiKey: "AIzaSyCXUOhXBoeUlYNAgLlfavfjBcX3A7hjO5M",
     authDomain: "tokyo-1bf69.firebaseapp.com",
@@ -56,59 +161,163 @@ const firebaseConfig = {
     measurementId: "G-JXDX40G20R"
   };
 
-    // 初始化 Firebase 與 Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 1. 點擊按鈕新增花費到雲端資料庫
-    document.getElementById('addBtn').addEventListener('click', async () => {
-      const payer = document.getElementById('payer').value.trim();
-      const name = document.getElementById('itemName').value.trim();
-      const amount = document.getElementById('itemAmount').value.trim();
+    // 當前選取的日期 (預設 8-12)
+    window.currentDay = '8-12';
 
-      if (!payer || !name || !amount) {
-        alert('請填寫完整內容！');
-        return;
+    // 初始化：偵測今天日期，並自動優先顯示當天行程
+    window.addEventListener('DOMContentLoaded', () => {
+      autoDetectToday();
+      loadDefault812Data(); // 預設載入 8/12 初始行程
+      listenDayExpenses(window.currentDay);
+    });
+
+    // 1. 自動偵測當天日期功能
+    function autoDetectToday() {
+      const today = new Date();
+      const month = today.getMonth() + 1;
+      const date = today.getDate();
+      const todayStr = `${month}-${date}`;
+      
+      // 如果今天在 8/12 ~ 8/16 範圍內，自動切換
+      if (['8-12', '8-13', '8-14', '8-15', '8-16'].includes(todayStr)) {
+        switchDay(todayStr);
+      } else {
+        switchDay('8-12'); // 不在範圍內則預設 8/12
       }
+    }
 
-      try {
-        await addDoc(collection(db, "expenses"), {
-          payer: payer,
-          name: name,
-          amount: Number(amount),
-          createdAt: new Date()
+    // 2. 切換日期天數
+    window.switchDay = function(dayStr) {
+      window.currentDay = dayStr;
+      document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`btn-${dayStr}`);
+      if(activeBtn) activeBtn.classList.add('active');
+
+      listenDayExpenses(dayStr);
+    };
+
+    // 3. 頁面 Bottom Tab 切換
+    window.switchTab = function(tabName) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+      document.getElementById(`page-${tabName}`).classList.add('active');
+      document.getElementById(`nav-${tabName}`).classList.add('active');
+    };
+
+    // 4. 即時監聽與「時間自動排序」
+    function listenDayExpenses(dayStr) {
+      const q = query(collection(db, "itinerary"), where("day", "==", dayStr));
+      
+      onSnapshot(q, (snapshot) => {
+        let spots = [];
+        snapshot.forEach((doc) => {
+          spots.push({ id: doc.id, ...doc.data() });
         });
-        
-        // 清空輸入框
-        document.getElementById('itemName').value = '';
-        document.getElementById('itemAmount').value = '';
-      } catch (error) {
-        console.error("寫入錯誤：", error);
-        alert("資料寫入失敗，請確認 Firebase 設定。");
-      }
-    });
 
-    // 2. 即時監聽資料庫變動 (不論是誰新增，畫面都會即時更新)
-    const q = query(collection(db, "expenses"), orderBy("createdAt", "desc"));
-    onSnapshot(q, (snapshot) => {
-      const list = document.getElementById('expenseList');
-      list.innerHTML = '';
+        // 核心功能：前端自動按時間 (0715, 0835 等) 做升冪排序
+        spots.sort((a, b) => a.time.replace(':', '') - b.time.replace(':', ''));
 
-      if (snapshot.empty) {
-        list.innerHTML = '<li>目前還沒有記帳紀錄喔！</li>';
+        renderItinerary(spots);
+      });
+    }
+
+    // 5. 渲染行程卡片至 UI
+    function renderItinerary(spots) {
+      const listEl = document.getElementById('itinerary-list');
+      listEl.innerHTML = '';
+
+      if (spots.length === 0) {
+        listEl.innerHTML = '<div class="card" style="text-align:center; color:#999;">這一天還沒有行程，可以在下方新增喔！</div>';
         return;
       }
 
-      snapshot.forEach((doc) => {
-        const item = doc.data();
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <span><b>${item.payer}</b> 付了 <b>${item.name}</b></span>
-          <span>$${item.amount}</span>
+      spots.forEach(spot => {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        let typeClass = 'type-spot';
+        let typeName = '📍 景點';
+        if (spot.type === 'transport') { typeClass = 'type-transport'; typeName = '🚌 交通'; }
+        if (spot.type === 'flight') { typeClass = 'type-flight'; typeName = '✈️ 航班/手續'; }
+
+        // 特別處理：如果是入境 QR Code 項目，加上三個成員按鈕
+        let qrSection = '';
+        if (spot.title.includes('入境QR Code')) {
+          qrSection = `
+            <div class="member-btns">
+              <div class="member-btn" onclick="toggleQR('meiting')">美婷</div>
+              <div class="member-btn" onclick="toggleQR('liting')">麗婷</div>
+              <div class="member-btn" onclick="toggleQR('tao')">桃</div>
+            </div>
+            <div id="qr-display" class="qr-preview">
+              <p id="qr-name" style="font-size:12px; color:#666; margin-bottom:5px;"></p>
+              <img id="qr-img" src="" alt="QR Code 預覽區">
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="card-header">
+            <span class="time-badge">${spot.time}</span>
+            <span class="type-tag ${typeClass}">${typeName}</span>
+          </div>
+          <div class="card-title">${spot.title}</div>
+          <div class="card-desc">${spot.desc || ''}</div>
+          ${qrSection}
         `;
-        list.appendChild(li);
+        listEl.appendChild(card);
       });
-    });
+    }
+
+    // 6. 展開/切換成員 QR Code 圖片
+    window.toggleQR = function(name) {
+      const qrDisplay = document.getElementById('qr-display');
+      const qrImg = document.getElementById('qr-img');
+      const qrName = document.getElementById('qr-name');
+
+      // 預留圖片路徑，稍後可換成實際網址
+      const qrData = {
+        meiting: { title: '美婷的 Visit Japan Web QR Code', url: 'https://via.placeholder.com/200?text=Meiting+QR' },
+        liting: { title: '麗婷的 Visit Japan Web QR Code', url: 'https://via.placeholder.com/200?text=Liting+QR' },
+        tao: { title: '桃的 Visit Japan Web QR Code', url: 'https://via.placeholder.com/200?text=Tao+QR' }
+      };
+
+      qrName.innerText = qrData[name].title;
+      qrImg.src = qrData[name].url;
+      qrDisplay.style.display = 'block';
+    };
+
+    // 7. 新增景點至 Firestore
+    window.addNewSpot = async function() {
+      const time = document.getElementById('newTime').value;
+      const title = document.getElementById('newTitle').value;
+      const type = document.getElementById('newType').value;
+      const desc = document.getElementById('newDesc').value;
+
+      if (!time || !title) { alert('請填寫時間與景點名稱！'); return; }
+
+      await addDoc(collection(db, "itinerary"), {
+        day: window.currentDay,
+        time: time,
+        title: title,
+        type: type,
+        desc: desc,
+        createdAt: new Date()
+      });
+
+      document.getElementById('newTime').value = '';
+      document.getElementById('newTitle').value = '';
+      document.getElementById('newDesc').value = '';
+    };
+
+    // 預先寫入 8/12 的初始化資料
+    async function loadDefault812Data() {
+      // 此處會在 Firebase 首次啟動時供展示
+    }
   </script>
 </body>
 </html>
