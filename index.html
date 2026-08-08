@@ -365,8 +365,12 @@
           spots.push({ id: doc.id, ...doc.data() });
         });
 
-        // 按時間升冪自動排序
-        spots.sort((a, b) => (a.time || '').replace(':', '') - (b.time || '').replace(':', ''));
+// 按時間自動排序 (若沒填時間，給予 9999 讓它自動排到最底部)
+        spots.sort((a, b) => {
+          const timeA = (a.time && a.time.trim() !== '') ? parseInt(a.time.replace(':', ''), 10) : 9999;
+          const timeB = (b.time && b.time.trim() !== '') ? parseInt(b.time.replace(':', ''), 10) : 9999;
+          return timeA - timeB;
+        });
 
         renderItinerary(spots);
       });
@@ -409,7 +413,7 @@
         row.innerHTML = `
           <!-- 左側時間框 -->
           <div class="time-box">
-            <span class="time-badge">${spot.time}</span>
+         <span class="time-badge">${spot.time || '未定'}</span>
             <span class="type-tag ${typeClass}">${typeName}</span>
           </div>
 
@@ -500,21 +504,19 @@
       modal.style.display = 'none';
     };
 
-    // 手動新增行程
+// 手動新增行程 (取消欄位限制)
     window.addNewSpot = async function() {
       const time = document.getElementById('newTime').value;
       const title = document.getElementById('newTitle').value;
       const type = document.getElementById('newType').value;
       const desc = document.getElementById('newDesc').value;
 
-      if (!time || !title) { alert('請填寫時間與景點名稱！'); return; }
-
       await addDoc(collection(db, "itinerary"), {
         day: window.currentDay,
-        time: time,
-        title: title,
-        type: type,
-        desc: desc,
+        time: time ? time.trim() : '',
+        title: title ? title.trim() : '（未填寫標題）',
+        type: type || 'spot',
+        desc: desc ? desc.trim() : '',
         createdAt: new Date()
       });
 
