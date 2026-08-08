@@ -161,6 +161,62 @@
     .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: var(--text-sub); text-decoration: none; cursor: pointer; }
     .nav-item.active { color: var(--text-main); font-weight: 600; }
     .nav-icon { font-size: 18px; margin-bottom: 2px; }
+    /* Pop-up 彈出視窗樣式 */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  width: 85%;
+  max-width: 360px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  animation: popIn 0.25s ease-out;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #666;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0 5px;
+}
+
+.modal-close:hover {
+  color: #000;
+}
+
+.modal-img {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 10px;
+}
   </style>
 </head>
 <body>
@@ -336,16 +392,12 @@
         if (spot.type === 'flight') { typeClass = 'type-flight'; typeName = '✈️ 航班'; }
 
         let qrSection = '';
-        if (spot.title.includes('入境QR Code')) {
+  if (spot.title.includes('入境QR Code')) {
           qrSection = `
-            <div class="member-btns">
+            <div class="member-btns" style="margin-top: 10px;">
               <div class="member-btn" onclick="toggleQR('美婷')">美婷</div>
               <div class="member-btn" onclick="toggleQR('麗婷')">麗婷</div>
               <div class="member-btn" onclick="toggleQR('桃')">桃</div>
-            </div>
-            <div id="qr-display" class="qr-preview">
-              <p id="qr-name" style="font-size:12px; color:#666; margin-bottom:5px;"></p>
-              <img id="qr-img" src="" alt="QR Code 預覽區">
             </div>
           `;
         }
@@ -428,21 +480,24 @@
       }
     };
 
-// 顯示成員 QR Code 預覽 (讀取 GitHub 上傳的圖片)
+// 開啟 QR Code 彈出視窗
     window.toggleQR = function(name) {
-      const qrDisplay = document.getElementById('qr-display');
-      const qrImg = document.getElementById('qr-img');
-      const qrName = document.getElementById('qr-name');
-
-      // 依據點擊的人名對應檔名
       let imgFile = '';
       if (name === '美婷') imgFile = 'meiqr.png';
       if (name === '麗婷') imgFile = 'laiqr.png';
       if (name === '桃') imgFile = 'myqr.png';
 
-      qrName.innerText = `${name} 的 Visit Japan Web 入境 QR Code`;
-      qrImg.src = imgFile; // 讀取同目錄下的圖片檔
-      qrDisplay.style.display = 'block';
+      document.getElementById('modal-qr-name').innerText = `${name} 的 Visit Japan Web`;
+      document.getElementById('modal-qr-img').src = imgFile;
+      
+      const modal = document.getElementById('qr-modal');
+      modal.style.display = 'flex';
+    };
+
+    // 關閉 QR Code 彈出視窗
+    window.closeQRModal = function(event) {
+      const modal = document.getElementById('qr-modal');
+      modal.style.display = 'none';
     };
 
     // 手動新增行程
@@ -488,5 +543,13 @@
       }
     }
   </script>
+  <!-- QR Code Pop-up Modal -->
+<div id="qr-modal" class="modal-overlay" onclick="closeQRModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeQRModal()">✕</button>
+    <h3 id="modal-qr-name" style="margin: 0 0 10px 0; color: #333; font-size: 16px;"></h3>
+    <img id="modal-qr-img" class="modal-img" src="" alt="QR Code">
+  </div>
+</div>
 </body>
 </html>
