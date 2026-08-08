@@ -428,14 +428,20 @@
       }
     };
 
-    // 顯示成員 QR Code 預覽
+// 顯示成員 QR Code 預覽 (讀取 GitHub 上傳的圖片)
     window.toggleQR = function(name) {
       const qrDisplay = document.getElementById('qr-display');
       const qrImg = document.getElementById('qr-img');
       const qrName = document.getElementById('qr-name');
 
+      // 依據點擊的人名對應檔名
+      let imgFile = '';
+      if (name === '美婷') imgFile = 'meiqr.png';
+      if (name === '麗婷') imgFile = 'laiqr.png';
+      if (name === '桃') imgFile = 'myqr.png';
+
       qrName.innerText = `${name} 的 Visit Japan Web 入境 QR Code`;
-      qrImg.src = `https://via.placeholder.com/250x250?text=${encodeURIComponent(name)}+QR+Code`;
+      qrImg.src = imgFile; // 讀取同目錄下的圖片檔
       qrDisplay.style.display = 'block';
     };
 
