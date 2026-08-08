@@ -407,7 +407,7 @@
               <div class="member-btn" onclick="toggleQR('桃')">桃</div>
             </div>
           `;
-        } else if (titleText.includes('京成上野') || titleText.includes('Skyliner')) {
+} else if ((titleText.includes('成田') && titleText.includes('京成上野')) || titleText.includes('Skyliner換票') || titleText.includes('Skyliner 換票')) {
           qrSection = `
             <div class="member-btns" style="margin-top: 10px; grid-template-columns: repeat(2, 1fr);">
               <div class="member-btn" onclick="toggleSkyliner('location')">📍 換票地點</div>
