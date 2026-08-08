@@ -9,7 +9,7 @@
   <!-- Muji 簡約風 + 高透光玻璃質感 -->
   <style>
     :root {
-      --card-bg: rgba(255, 255, 255, 0.45); /* 透明度再增加一倍 */
+      --card-bg: rgba(255, 255, 255, 0.65); /* 透明度再增加一倍 */
       --card-border: rgba(255, 255, 255, 0.5);
       --text-main: #2c2c2c;
       --text-sub: #444444;
@@ -373,25 +373,28 @@
       });
     }
 
-    // 點擊鉛筆 ✏️ 編輯行程 (即時同步所有人手機)
+// 點擊鉛筆 ✏️ 編輯行程 (三行分開輸入，按取消可保留原值)
     window.editSpot = async function(docId, oldTime, oldTitle, oldDesc) {
-      const newTime = prompt("修改時間 (例如 08:30)：", oldTime);
-      if (newTime === null) return; // 點取消
+      // 第一行：時間
+      const newTime = prompt("【1/3】修改時間 (Time)：", oldTime);
+      if (newTime === null) return; // 按取消則放棄修改
 
-      const newTitle = prompt("修改行程標題：", oldTitle);
-      if (newTitle === null) return;
+      // 第二行：標題 (Subject)
+      const newTitle = prompt("【2/3】修改標題 (Subject)：", oldTitle);
+      if (newTitle === null) return; 
 
-      const newDesc = prompt("修改備註內容：", oldDesc);
-      if (newDesc === null) return;
+      // 第三行：備註內容 (Content)
+      const newDesc = prompt("【3/3】修改內容/備註 (Content)：", oldDesc);
+      if (newDesc === null) return; 
 
       try {
         const docRef = doc(db, "itinerary", docId);
         await updateDoc(docRef, {
-          time: newTime,
-          title: newTitle,
-          desc: newDesc
+          time: newTime.trim(),
+          title: newTitle.trim(),
+          desc: newDesc.trim()
         });
-        alert("已成功更新並同步給所有人！");
+        alert("✨ 已成功更新並即時同步給所有人！");
       } catch (error) {
         alert("更新失敗：" + error.message);
       }
