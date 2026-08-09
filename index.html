@@ -397,7 +397,7 @@
         if (spot.type === 'transport') { typeClass = 'type-transport'; typeName = '🚌 交通'; }
         if (spot.type === 'flight') { typeClass = 'type-flight'; typeName = '✈️ 航班'; }
 
-        // 處理特殊按鈕區 (入境 QR Code & Skyliner 換票)
+        // 判斷按鈕區 (入境 QR Code & Skyliner 換票)
         let qrSection = '';
         const titleText = spot.title || '';
         
@@ -409,7 +409,7 @@
               <div class="member-btn" onclick="toggleQR('桃')">桃</div>
             </div>
           `;
-} else if ((titleText.includes('成田') && titleText.includes('京成上野')) || titleText.includes('Skyliner換票') || titleText.includes('Skyliner 換票')) {
+        } else if ((titleText.includes('成田') && titleText.includes('京成上野')) || titleText.includes('Skyliner換票')) {
           qrSection = `
             <div class="member-btns" style="margin-top: 10px; grid-template-columns: repeat(2, 1fr);">
               <div class="member-btn" onclick="toggleSkyliner('location')">📍 換票地點</div>
@@ -418,21 +418,24 @@
           `;
         }
 
-        // 如果有填寫 Google Maps 連結，顯示導航按鈕
+        // Google Maps 按鈕
         let mapBtnSection = '';
-        if (spot.mapUrl) {
+        if (spot.mapUrl && spot.mapUrl.trim() !== '') {
+          // 安全保護網址中的特殊字元
+          const safeMapUrl = spot.mapUrl.replace(/'/g, "%27").replace(/"/g, "&quot;");
           mapBtnSection = `
             <div style="margin-top: 8px;">
-              <a href="${spot.mapUrl}" target="_blank" style="display: inline-block; background-color: #4285F4; color: white; padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold;">
+              <a href="${safeMapUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #4285F4; color: #ffffff; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold;">
                 🗺️ 開啟 Google 地圖導航
               </a>
             </div>
           `;
         }
 
-        // 跳脫字串保護
+        // 字串全跳脫保護 (防止編輯按鈕因為特殊字元或網址毀損)
         const safeTitle = titleText.replace(/'/g, "\\'").replace(/"/g, "&quot;");
         const safeDesc = (spot.desc || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        const safeMapUrlEdit = (spot.mapUrl || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
         row.innerHTML = `
           <!-- 左側時間框 -->
@@ -444,54 +447,59 @@
           <!-- 右側行程內容框 -->
           <div class="card-content">
             <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 6px;">
-              <button class="edit-btn" style="position:static;" onclick="editSpot('${spot.id}', '${spot.time || ''}', '${safeTitle}', '${safeDesc}', '${spot.type || 'spot'}')">✏️</button>
+              <button class="edit-btn" style="position:static;" onclick="editSpot('${spot.id}', '${spot.time || ''}', '${safeTitle}', '${safeDesc}', '${spot.type || 'spot'}', '${safeMapUrlEdit}')">✏️</button>
               <button class="edit-btn" style="position:static;" onclick="deleteSpot('${spot.id}', '${safeTitle}')">🗑️</button>
             </div>
             <div class="card-title">${titleText}</div>
             <div class="card-desc">${spot.desc || ''}</div>
+            ${mapBtnSection}
             ${qrSection}
           </div>
         `;
         listEl.appendChild(row);
       });
     }
+    
+// 開啟編輯跳窗
+    window.editSpot = function(id, time, title, desc, type, mapUrl = '') {
+      document.getElementById('edit-id').value = id;
+      document.getElementById('edit-time').value = time;
+      document.getElementById('edit-title').value = title;
+      document.getElementById('edit-desc').value = desc;
+      document.getElementById('edit-type').value = type;
+      
+      // 讀取地圖網址並放入編輯視窗 (如果有的話)
+      const editMapEl = document.getElementById('edit-mapUrl');
+      if (editMapEl) editMapEl.value = mapUrl;
 
-// 點擊鉛筆 ✏️ 編輯行程 (包含類型切換)
-    window.editSpot = async function(docId, oldTime, oldTitle, oldDesc, oldType = 'spot') {
-      // 1. 修改時間
-      const newTime = prompt("【1/4】修改時間 (Time)：", oldTime);
-      if (newTime === null) return;
+      document.getElementById('edit-modal').style.display = 'flex';
+    };
 
-      // 2. 修改類型 (標籤)
-      const newTypeInput = prompt("【2/4】選擇類別標籤：\n輸入 1 ➔ 📍 景點/活動\n輸入 2 ➔ 🚌 交通\n輸入 3 ➔ ✈️ 航班/手續", 
-        oldType === 'transport' ? '2' : (oldType === 'flight' ? '3' : '1')
-      );
-      if (newTypeInput === null) return;
+    // 儲存編輯內容
+    window.saveEditSpot = async function() {
+      const id = document.getElementById('edit-id').value;
+      const time = document.getElementById('edit-time').value;
+      const title = document.getElementById('edit-title').value;
+      const desc = document.getElementById('edit-desc').value;
+      const type = document.getElementById('edit-type').value;
+      <input type="url" id="edit-mapUrl" placeholder="Google Maps 路線連結 (選填)" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; margin-bottom: 10px;">
+      
+      // 取得修改後的地圖網址
+      const editMapEl = document.getElementById('edit-mapUrl');
+      const mapUrl = editMapEl ? editMapEl.value : '';
 
-      let newType = 'spot';
-      if (newTypeInput.trim() === '2') newType = 'transport';
-      if (newTypeInput.trim() === '3') newType = 'flight';
+      if (!id) return;
 
-      // 3. 修改標題
-      const newTitle = prompt("【3/4】修改標題 (Subject)：", oldTitle);
-      if (newTitle === null) return; 
+      const docRef = doc(db, "itinerary", id);
+      await updateDoc(docRef, {
+        time: time ? time.trim() : '',
+        title: title ? title.trim() : '（未填寫標題）',
+        type: type || 'spot',
+        desc: desc ? desc.trim() : '',
+        mapUrl: mapUrl ? mapUrl.trim() : ''
+      });
 
-      // 4. 修改內容
-      const newDesc = prompt("【4/4】修改內容/備註 (Content)：", oldDesc);
-      if (newDesc === null) return; 
-
-      try {
-        const docRef = doc(db, "itinerary", docId);
-        await updateDoc(docRef, {
-          time: newTime.trim(),
-          type: newType,
-          title: newTitle.trim(),
-          desc: newDesc.trim()
-        });
-        alert("✨ 已成功更新並即時同步給所有人！");
-      } catch (error) {
-        alert("更新失敗：" + error.message);
-      }
+      document.getElementById('edit-modal').style.display = 'none';
     };
 
     // 獨立的刪除按鈕 🗑️ 觸發函式
