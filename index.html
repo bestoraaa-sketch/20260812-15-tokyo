@@ -9,7 +9,7 @@
   <!-- Muji 簡約風 + 高透光玻璃質感 -->
   <style>
     :root {
-      --card-bg: rgba(255, 255, 255, 0.65); /* 透明度再增加一倍 */
+      --card-bg: rgba(255, 255, 255, 0.65);
       --card-border: rgba(255, 255, 255, 0.5);
       --text-main: #2c2c2c;
       --text-sub: #444444;
@@ -127,33 +127,29 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
       position: relative;
     }
-    .card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text-main); padding-right: 24px; }
-.card-desc { font-size: 12.5px; color: var(--text-sub); line-height: 1.4; white-space: pre-line; }
+    .card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text-main); padding-right: 50px; }
+    .card-desc { font-size: 12.5px; color: var(--text-sub); line-height: 1.4; white-space: pre-line; }
 
-    /* 鉛筆修改按鈕 */
+    /* 編輯與刪除按鈕 */
     .edit-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
       background: transparent;
       border: none;
       cursor: pointer;
       font-size: 14px;
       opacity: 0.7;
       transition: opacity 0.2s;
+      padding: 2px;
     }
     .edit-btn:hover { opacity: 1; }
 
-    /* 入境 QR Code 按鈕區 */
+    /* 入境 QR Code & Skyliner 按鈕區 */
     .member-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
     .member-btn { padding: 6px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.8); border-radius: 6px; font-size: 12px; color: var(--text-main); text-align: center; cursor: pointer; font-weight: 500; }
-    .qr-preview { margin-top: 10px; text-align: center; display: none; padding: 10px; background: rgba(255,255,255,0.9); border-radius: 8px; border: 1px dashed #ccc; }
-    .qr-preview img { max-width: 100%; height: auto; border-radius: 6px; }
 
     /* 新增行程表單區塊 */
     .add-form { margin-top: 20px; background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 16px; border-radius: 14px; border: 1px solid var(--card-border); }
     .add-form h3 { font-size: 14px; margin-bottom: 10px; color: var(--text-main); }
-    .add-form input, .add-form select { width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; background: rgba(255,255,255,0.8); }
+    .add-form input, .add-form select, .add-form textarea { width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; background: rgba(255,255,255,0.8); }
     .add-form button { width: 100%; padding: 10px; background: var(--text-main); color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: 500; }
 
     /* 底部 Tab 導覽列 */
@@ -161,62 +157,54 @@
     .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: var(--text-sub); text-decoration: none; cursor: pointer; }
     .nav-item.active { color: var(--text-main); font-weight: 600; }
     .nav-icon { font-size: 18px; margin-bottom: 2px; }
-    /* Pop-up 彈出視窗樣式 */
-.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 9999;
-  justify-content: center;
-  align-items: center;
-  backdrop-filter: blur(4px);
-}
 
-.modal-content {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 16px;
-  width: 85%;
-  max-width: 360px;
-  text-align: center;
-  position: relative;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-  animation: popIn 0.25s ease-out;
-}
+    /* Pop-up 彈出視窗通用樣式 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+    }
 
-@keyframes popIn {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
+    .modal-content {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 16px;
+      width: 85%;
+      max-width: 360px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      animation: popIn 0.25s ease-out;
+    }
 
-.modal-close {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 24px;
-  font-weight: bold;
-  color: #666;
-  cursor: pointer;
-  border: none;
-  background: none;
-  padding: 0 5px;
-}
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
 
-.modal-close:hover {
-  color: #000;
-}
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #666;
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 0 5px;
+    }
 
-.modal-img {
-  width: 100%;
-  max-width: 280px;
-  height: auto;
-  border-radius: 8px;
-  margin-top: 10px;
-}
+    .modal-close:hover { color: #000; }
+    .modal-img { width: 100%; max-width: 280px; height: auto; border-radius: 8px; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -241,12 +229,11 @@
   </div>
 
   <div class="container">
-    
     <!-- 主頁面：每日行程 -->
     <div id="page-itinerary" class="page active">
       <div id="itinerary-list">載入行程中...</div>
 
-      <!-- 手動新增行程 (即時同步至 Firebase) -->
+      <!-- 手動新增行程 -->
       <div class="add-form">
         <h3>➕ 加插新行程</h3>
         <input type="time" id="newTime">
@@ -256,9 +243,8 @@
           <option value="transport">🚌 交通</option>
           <option value="flight">✈️ 航班/手續</option>
         </select>
-        <textarea id="newDesc" placeholder="行程備註 (選填，可直接按 Enter 換行隔行)" rows="2" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-family: inherit; margin-top: 6px;"></textarea>
-        <!-- 新增地圖/路線連結欄位 -->
-<input type="url" id="newMapUrl" placeholder="Google Maps 路線或地點連結 (選填)" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; margin-top: 6px; font-size: 13px;">
+        <textarea id="newDesc" placeholder="行程備註 (選填，可按 Enter 換行隔行)" rows="2" style="font-family: inherit;"></textarea>
+        <input type="url" id="newMapUrl" placeholder="Google Maps 路線或地點連結 (選填)" style="font-size: 13px;">
         <button onclick="addNewSpot()">新增至當天行程</button>
       </div>
     </div>
@@ -283,7 +269,6 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <!-- 底部固定導覽列 -->
@@ -297,10 +282,50 @@
       <span>資訊/住宿</span>
     </div>
   </nav>
+
+  <!-- QR Code / 換票 Pop-up Modal -->
+  <div id="qr-modal" class="modal-overlay" onclick="closeQRModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeQRModal()">✕</button>
+      <h3 id="modal-qr-name" style="margin: 0 0 10px 0; color: #333; font-size: 16px;"></h3>
+      <img id="modal-qr-img" class="modal-img" src="" alt="圖片">
+    </div>
+  </div>
+
+  <!-- ✏️ 行程編輯 Pop-up Modal -->
+  <div id="edit-modal" class="modal-overlay" onclick="document.getElementById('edit-modal').style.display='none'">
+    <div class="modal-content" onclick="event.stopPropagation()" style="text-align: left;">
+      <button class="modal-close" onclick="document.getElementById('edit-modal').style.display='none'">✕</button>
+      <h3 style="margin-bottom: 12px; color: #333; font-size: 16px;">✏️ 編輯行程</h3>
+      
+      <input type="hidden" id="edit-id">
+      <label style="font-size: 12px; color: #666;">時間：</label>
+      <input type="time" id="edit-time" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px;">
+      
+      <label style="font-size: 12px; color: #666;">標題：</label>
+      <input type="text" id="edit-title" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px;">
+      
+      <label style="font-size: 12px; color: #666;">分類：</label>
+      <select id="edit-type" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px;">
+        <option value="spot">📍 景點/活動</option>
+        <option value="transport">🚌 交通</option>
+        <option value="flight">✈️ 航班/手續</option>
+      </select>
+
+      <label style="font-size: 12px; color: #666;">備註 (可 Enter 隔行)：</label>
+      <textarea id="edit-desc" rows="3" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit;"></textarea>
+
+      <label style="font-size: 12px; color: #666;">Google Maps 路線連結：</label>
+      <input type="url" id="edit-mapUrl" placeholder="Google Maps 路線連結 (選填)" style="width: 100%; padding: 8px; margin-bottom: 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px;">
+
+      <button onclick="saveEditSpot()" style="width: 100%; padding: 10px; background: #333; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">儲存修改</button>
+    </div>
+  </div>
+
   <!-- 串接 Firebase CDN -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-   import { getFirestore, collection, addDoc, onSnapshot, query, where, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, where, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     // Firebase 設定
     const firebaseConfig = {
@@ -317,6 +342,7 @@
     const db = getFirestore(app);
 
     window.currentDay = '8-12';
+    window.currentSpots = []; // 行程快取，防止屬性字串跳脫錯誤
 
     window.addEventListener('DOMContentLoaded', async () => {
       autoDetectToday();
@@ -367,18 +393,19 @@
           spots.push({ id: doc.id, ...doc.data() });
         });
 
-// 按時間自動排序 (若沒填時間，給予 9999 讓它自動排到最底部)
+        // 按時間自動排序
         spots.sort((a, b) => {
           const timeA = (a.time && a.time.trim() !== '') ? parseInt(a.time.replace(':', ''), 10) : 9999;
           const timeB = (b.time && b.time.trim() !== '') ? parseInt(b.time.replace(':', ''), 10) : 9999;
           return timeA - timeB;
         });
 
+        window.currentSpots = spots; // 寫入快取
         renderItinerary(spots);
       });
     }
 
-// 渲染卡片：左邊時間、右邊行程
+    // 渲染卡片
     function renderItinerary(spots) {
       const listEl = document.getElementById('itinerary-list');
       listEl.innerHTML = '';
@@ -397,7 +424,7 @@
         if (spot.type === 'transport') { typeClass = 'type-transport'; typeName = '🚌 交通'; }
         if (spot.type === 'flight') { typeClass = 'type-flight'; typeName = '✈️ 航班'; }
 
-        // 判斷按鈕區 (入境 QR Code & Skyliner 換票)
+        // 按鈕區 (入境 QR Code & Skyliner 換票)
         let qrSection = '';
         const titleText = spot.title || '';
         
@@ -418,10 +445,9 @@
           `;
         }
 
-        // Google Maps 按鈕
+        // Google Maps 導航按鈕
         let mapBtnSection = '';
         if (spot.mapUrl && spot.mapUrl.trim() !== '') {
-          // 安全保護網址中的特殊字元
           const safeMapUrl = spot.mapUrl.replace(/'/g, "%27").replace(/"/g, "&quot;");
           mapBtnSection = `
             <div style="margin-top: 8px;">
@@ -431,11 +457,6 @@
             </div>
           `;
         }
-
-        // 字串全跳脫保護 (防止編輯按鈕因為特殊字元或網址毀損)
-        const safeTitle = titleText.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-        const safeDesc = (spot.desc || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-        const safeMapUrlEdit = (spot.mapUrl || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
         row.innerHTML = `
           <!-- 左側時間框 -->
@@ -447,8 +468,8 @@
           <!-- 右側行程內容框 -->
           <div class="card-content">
             <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 6px;">
-              <button class="edit-btn" style="position:static;" onclick="editSpot('${spot.id}', '${spot.time || ''}', '${safeTitle}', '${safeDesc}', '${spot.type || 'spot'}', '${safeMapUrlEdit}')">✏️</button>
-              <button class="edit-btn" style="position:static;" onclick="deleteSpot('${spot.id}', '${safeTitle}')">🗑️</button>
+              <button class="edit-btn" onclick="openEditModal('${spot.id}')">✏️</button>
+              <button class="edit-btn" onclick="deleteSpot('${spot.id}')">🗑️</button>
             </div>
             <div class="card-title">${titleText}</div>
             <div class="card-desc">${spot.desc || ''}</div>
@@ -460,17 +481,19 @@
       });
     }
     
-// 開啟編輯跳窗
-    window.editSpot = function(id, time, title, desc, type, mapUrl = '') {
-      document.getElementById('edit-id').value = id;
-      document.getElementById('edit-time').value = time;
-      document.getElementById('edit-title').value = title;
-      document.getElementById('edit-desc').value = desc;
-      document.getElementById('edit-type').value = type;
-      
-      // 讀取地圖網址並放入編輯視窗 (如果有的話)
+    // 安全開啟編輯彈出視窗
+    window.openEditModal = function(id) {
+      const spot = (window.currentSpots || []).find(s => s.id === id);
+      if (!spot) return;
+
+      document.getElementById('edit-id').value = spot.id || '';
+      document.getElementById('edit-time').value = spot.time || '';
+      document.getElementById('edit-title').value = spot.title || '';
+      document.getElementById('edit-desc').value = spot.desc || '';
+      document.getElementById('edit-type').value = spot.type || 'spot';
+
       const editMapEl = document.getElementById('edit-mapUrl');
-      if (editMapEl) editMapEl.value = mapUrl;
+      if (editMapEl) editMapEl.value = spot.mapUrl || '';
 
       document.getElementById('edit-modal').style.display = 'flex';
     };
@@ -482,9 +505,6 @@
       const title = document.getElementById('edit-title').value;
       const desc = document.getElementById('edit-desc').value;
       const type = document.getElementById('edit-type').value;
-      <input type="url" id="edit-mapUrl" placeholder="Google Maps 路線連結 (選填)" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; margin-bottom: 10px;">
-      
-      // 取得修改後的地圖網址
       const editMapEl = document.getElementById('edit-mapUrl');
       const mapUrl = editMapEl ? editMapEl.value : '';
 
@@ -502,21 +522,22 @@
       document.getElementById('edit-modal').style.display = 'none';
     };
 
-    // 獨立的刪除按鈕 🗑️ 觸發函式
-    window.deleteSpot = async function(docId, title) {
-      const confirmDelete = confirm(`⚠️ 確定要刪除「${title}」嗎？\n\n刪除後所有人的手機都會同步移除，無法復原喔！`);
-      if (confirmDelete) {
+    // 安全刪除行程
+    window.deleteSpot = async function(id) {
+      const spot = (window.currentSpots || []).find(s => s.id === id);
+      const title = spot ? spot.title : '這筆行程';
+
+      if (confirm(`⚠️ 確定要刪除「${title}」嗎？\n\n刪除後所有人的手機都會同步移除，無法復原喔！`)) {
         try {
-          const docRef = doc(db, "itinerary", docId);
+          const docRef = doc(db, "itinerary", id);
           await deleteDoc(docRef);
-          alert("🗑️ 行程已成功刪除！");
         } catch (error) {
           alert("刪除失敗：" + error.message);
         }
       }
     };
 
-// 開啟 QR Code 彈出視窗
+    // 開啟 QR Code 彈出視窗
     window.toggleQR = function(name) {
       let imgFile = '';
       if (name === '美婷') imgFile = 'meiqr.png';
@@ -526,17 +547,15 @@
       document.getElementById('modal-qr-name').innerText = `${name} 的 Visit Japan Web`;
       document.getElementById('modal-qr-img').src = imgFile;
       
-      const modal = document.getElementById('qr-modal');
-      modal.style.display = 'flex';
+      document.getElementById('qr-modal').style.display = 'flex';
     };
 
-    // 關閉 QR Code 彈出視窗
-    window.closeQRModal = function(event) {
-      const modal = document.getElementById('qr-modal');
-      modal.style.display = 'none';
+    // 關閉 Pop-up 視窗
+    window.closeQRModal = function() {
+      document.getElementById('qr-modal').style.display = 'none';
     };
 
-// 顯示 Skyliner 換票地點 / QR Code Pop-up
+    // 顯示 Skyliner 換票地點 / QR Code Pop-up
     window.toggleSkyliner = function(type) {
       let imgFile = '';
       let titleName = '';
@@ -549,18 +568,12 @@
         titleName = 'Skyliner 換票 QR Code';
       }
 
-      const modalName = document.getElementById('modal-qr-name');
-      const modalImg = document.getElementById('modal-qr-img');
-      const modal = document.getElementById('qr-modal');
-
-      if (modalName && modalImg && modal) {
-        modalName.innerText = titleName;
-        modalImg.src = imgFile;
-        modal.style.display = 'flex';
-      }
+      document.getElementById('modal-qr-name').innerText = titleName;
+      document.getElementById('modal-qr-img').src = imgFile;
+      document.getElementById('qr-modal').style.display = 'flex';
     };
     
-// 手動新增行程 (包含 Google Maps 連結)
+    // 手動新增行程 (包含 Google Maps 連結)
     window.addNewSpot = async function() {
       const time = document.getElementById('newTime').value;
       const title = document.getElementById('newTitle').value;
@@ -574,11 +587,11 @@
         title: title ? title.trim() : '（未填寫標題）',
         type: type || 'spot',
         desc: desc ? desc.trim() : '',
-        mapUrl: mapUrl ? mapUrl.trim() : '', // 儲存 Google Maps 連結
+        mapUrl: mapUrl ? mapUrl.trim() : '',
         createdAt: new Date()
       });
 
-      // 清空欄位
+      // 清空輸入欄位
       document.getElementById('newTime').value = '';
       document.getElementById('newTitle').value = '';
       document.getElementById('newDesc').value = '';
@@ -605,13 +618,5 @@
       }
     }
   </script>
-  <!-- QR Code Pop-up Modal -->
-<div id="qr-modal" class="modal-overlay" onclick="closeQRModal(event)">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <button class="modal-close" onclick="closeQRModal()">✕</button>
-    <h3 id="modal-qr-name" style="margin: 0 0 10px 0; color: #333; font-size: 16px;"></h3>
-    <img id="modal-qr-img" class="modal-img" src="" alt="QR Code">
-  </div>
-</div>
 </body>
 </html>
