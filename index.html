@@ -244,6 +244,7 @@
           <option value="flight">✈️ 航班/手續</option>
         </select>
         <textarea id="newDesc" placeholder="行程備註 (選填，可按 Enter 換行隔行)" rows="2" style="font-family: inherit;"></textarea>
+        <input type="text" id="newImgUrl" placeholder="圖片檔名 (GitHub 例如 menu.jpg) 或網路圖片網址" style="font-size: 13px;">
         <input type="url" id="newMapUrl" placeholder="Google Maps 路線或地點連結 (選填)" style="font-size: 13px;">
         <button onclick="addNewSpot()">新增至當天行程</button>
       </div>
@@ -283,7 +284,7 @@
     </div>
   </nav>
 
-  <!-- QR Code / 換票 Pop-up Modal -->
+  <!-- QR Code / 圖片 Pop-up Modal -->
   <div id="qr-modal" class="modal-overlay" onclick="closeQRModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeQRModal()">✕</button>
@@ -315,6 +316,9 @@
       <label style="font-size: 12px; color: #666;">備註 (可 Enter 隔行)：</label>
       <textarea id="edit-desc" rows="3" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit;"></textarea>
 
+      <label style="font-size: 12px; color: #666;">圖片檔名或網路圖片網址：</label>
+      <input type="text" id="edit-imgUrl" placeholder="GitHub 檔名 (如 pic.jpg) 或 圖片網址" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px;">
+
       <label style="font-size: 12px; color: #666;">Google Maps 路線連結：</label>
       <input type="url" id="edit-mapUrl" placeholder="Google Maps 路線連結 (選填)" style="width: 100%; padding: 8px; margin-bottom: 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px;">
 
@@ -342,7 +346,7 @@
     const db = getFirestore(app);
 
     window.currentDay = '8-12';
-    window.currentSpots = []; // 行程快取，防止屬性字串跳脫錯誤
+    window.currentSpots = []; // 行程快取
 
     window.addEventListener('DOMContentLoaded', async () => {
       autoDetectToday();
@@ -424,7 +428,7 @@
         if (spot.type === 'transport') { typeClass = 'type-transport'; typeName = '🚌 交通'; }
         if (spot.type === 'flight') { typeClass = 'type-flight'; typeName = '✈️ 航班'; }
 
-        // 按鈕區 (入境 QR Code & Skyliner 換票)
+        // 入境 QR Code & Skyliner 按鈕區
         let qrSection = '';
         const titleText = spot.title || '';
         
@@ -441,6 +445,18 @@
             <div class="member-btns" style="margin-top: 10px; grid-template-columns: repeat(2, 1fr);">
               <div class="member-btn" onclick="toggleSkyliner('location')">📍 換票地點</div>
               <div class="member-btn" onclick="toggleSkyliner('qr')">🎟️ 換票 QR Code</div>
+            </div>
+          `;
+        }
+
+        // 自訂圖片按鈕區 (判斷 GitHub 檔名或外鏈網址)
+        let imgBtnSection = '';
+        if (spot.imgUrl && spot.imgUrl.trim() !== '') {
+          imgBtnSection = `
+            <div style="margin-top: 8px;">
+              <button onclick="openCustomImageModal('${spot.id}')" style="background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; color: #333; font-weight: 500;">
+                🖼️ 查看附圖 / 菜單
+              </button>
             </div>
           `;
         }
@@ -473,6 +489,7 @@
             </div>
             <div class="card-title">${titleText}</div>
             <div class="card-desc">${spot.desc || ''}</div>
+            ${imgBtnSection}
             ${mapBtnSection}
             ${qrSection}
           </div>
@@ -492,6 +509,9 @@
       document.getElementById('edit-desc').value = spot.desc || '';
       document.getElementById('edit-type').value = spot.type || 'spot';
 
+      const editImgEl = document.getElementById('edit-imgUrl');
+      if (editImgEl) editImgEl.value = spot.imgUrl || '';
+
       const editMapEl = document.getElementById('edit-mapUrl');
       if (editMapEl) editMapEl.value = spot.mapUrl || '';
 
@@ -505,6 +525,10 @@
       const title = document.getElementById('edit-title').value;
       const desc = document.getElementById('edit-desc').value;
       const type = document.getElementById('edit-type').value;
+      
+      const editImgEl = document.getElementById('edit-imgUrl');
+      const imgUrl = editImgEl ? editImgEl.value : '';
+
       const editMapEl = document.getElementById('edit-mapUrl');
       const mapUrl = editMapEl ? editMapEl.value : '';
 
@@ -516,6 +540,7 @@
         title: title ? title.trim() : '（未填寫標題）',
         type: type || 'spot',
         desc: desc ? desc.trim() : '',
+        imgUrl: imgUrl ? imgUrl.trim() : '',
         mapUrl: mapUrl ? mapUrl.trim() : ''
       });
 
@@ -535,6 +560,22 @@
           alert("刪除失敗：" + error.message);
         }
       }
+    };
+
+    // 開啟自訂圖片 Modal (自動分辨 GitHub 檔名 或 完整網址)
+    window.openCustomImageModal = function(id) {
+      const spot = (window.currentSpots || []).find(s => s.id === id);
+      if (!spot || !spot.imgUrl) return;
+
+      let src = spot.imgUrl.trim();
+      // 如果不是以 http:// 或 https:// 開頭，自動視為上傳在 GitHub 根目錄的檔案
+      if (!src.startsWith('http://') && !src.startsWith('https://')) {
+        src = src; 
+      }
+
+      document.getElementById('modal-qr-name').innerText = spot.title || '行程附圖';
+      document.getElementById('modal-qr-img').src = src;
+      document.getElementById('qr-modal').style.display = 'flex';
     };
 
     // 開啟 QR Code 彈出視窗
@@ -573,12 +614,13 @@
       document.getElementById('qr-modal').style.display = 'flex';
     };
     
-    // 手動新增行程 (包含 Google Maps 連結)
+    // 手動新增行程
     window.addNewSpot = async function() {
       const time = document.getElementById('newTime').value;
       const title = document.getElementById('newTitle').value;
       const type = document.getElementById('newType').value;
       const desc = document.getElementById('newDesc').value;
+      const imgUrl = document.getElementById('newImgUrl').value;
       const mapUrl = document.getElementById('newMapUrl').value;
 
       await addDoc(collection(db, "itinerary"), {
@@ -587,6 +629,7 @@
         title: title ? title.trim() : '（未填寫標題）',
         type: type || 'spot',
         desc: desc ? desc.trim() : '',
+        imgUrl: imgUrl ? imgUrl.trim() : '',
         mapUrl: mapUrl ? mapUrl.trim() : '',
         createdAt: new Date()
       });
@@ -595,6 +638,7 @@
       document.getElementById('newTime').value = '';
       document.getElementById('newTitle').value = '';
       document.getElementById('newDesc').value = '';
+      document.getElementById('newImgUrl').value = '';
       document.getElementById('newMapUrl').value = '';
     };
     
