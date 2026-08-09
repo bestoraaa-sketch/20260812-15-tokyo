@@ -257,6 +257,8 @@
           <option value="flight">✈️ 航班/手續</option>
         </select>
         <textarea id="newDesc" placeholder="行程備註 (選填，可直接按 Enter 換行隔行)" rows="2" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-family: inherit; margin-top: 6px;"></textarea>
+        <!-- 新增地圖/路線連結欄位 -->
+<input type="url" id="newMapUrl" placeholder="Google Maps 路線或地點連結 (選填)" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; margin-top: 6px; font-size: 13px;">
         <button onclick="addNewSpot()">新增至當天行程</button>
       </div>
     </div>
@@ -416,6 +418,18 @@
           `;
         }
 
+        // 如果有填寫 Google Maps 連結，顯示導航按鈕
+        let mapBtnSection = '';
+        if (spot.mapUrl) {
+          mapBtnSection = `
+            <div style="margin-top: 8px;">
+              <a href="${spot.mapUrl}" target="_blank" style="display: inline-block; background-color: #4285F4; color: white; padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold;">
+                🗺️ 開啟 Google 地圖導航
+              </a>
+            </div>
+          `;
+        }
+
         // 跳脫字串保護
         const safeTitle = titleText.replace(/'/g, "\\'").replace(/"/g, "&quot;");
         const safeDesc = (spot.desc || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
@@ -538,12 +552,13 @@
       }
     };
     
-// 手動新增行程 (取消欄位限制)
+// 手動新增行程 (包含 Google Maps 連結)
     window.addNewSpot = async function() {
       const time = document.getElementById('newTime').value;
       const title = document.getElementById('newTitle').value;
       const type = document.getElementById('newType').value;
       const desc = document.getElementById('newDesc').value;
+      const mapUrl = document.getElementById('newMapUrl').value;
 
       await addDoc(collection(db, "itinerary"), {
         day: window.currentDay,
@@ -551,14 +566,17 @@
         title: title ? title.trim() : '（未填寫標題）',
         type: type || 'spot',
         desc: desc ? desc.trim() : '',
+        mapUrl: mapUrl ? mapUrl.trim() : '', // 儲存 Google Maps 連結
         createdAt: new Date()
       });
 
+      // 清空欄位
       document.getElementById('newTime').value = '';
       document.getElementById('newTitle').value = '';
       document.getElementById('newDesc').value = '';
+      document.getElementById('newMapUrl').value = '';
     };
-
+    
     // 首次開啟網頁自動匯入 8/12 初始行程到資料庫
     async function initDefaultDay1Data() {
       const q = query(collection(db, "itinerary"), where("day", "==", "8-12"));
