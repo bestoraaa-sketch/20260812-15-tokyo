@@ -23,7 +23,7 @@
     
     /* 背景圖置中全螢幕覆蓋 */
     body { 
-      background-image: url('https://upload.wikimedia.org/wikipedia/commons/4/4c/Series-N700a-Mt.Fuji.jpg');
+      background-image: url('https://upload.cc/i1/2026/08/08/7HkrZg.png');
       background-position: center;
       background-repeat: no-repeat;
       background-size: cover;
@@ -142,8 +142,8 @@
     }
     .edit-btn:hover { opacity: 1; }
 
-    /* 入境 QR Code & Skyliner 按鈕區 */
-    .member-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+    /* 入境 QR Code & 多圖人名按鈕區 */
+    .member-btns { display: grid; gap: 6px; margin-top: 10px; }
     .member-btn { padding: 6px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.8); border-radius: 6px; font-size: 12px; color: var(--text-main); text-align: center; cursor: pointer; font-weight: 500; }
 
     /* 新增行程表單區塊 */
@@ -244,7 +244,7 @@
           <option value="flight">✈️ 航班/手續</option>
         </select>
         <textarea id="newDesc" placeholder="行程備註 (選填，可按 Enter 換行隔行)" rows="2" style="font-family: inherit;"></textarea>
-        <input type="text" id="newImgUrl" placeholder="圖片檔名 (GitHub 例如 menu.jpg) 或網路圖片網址" style="font-size: 13px;">
+        <input type="text" id="newImgUrl" placeholder="單圖: pic.jpg 或 多圖: 美婷:a.jpg, 麗婷:b.jpg" style="font-size: 13px;">
         <input type="url" id="newMapUrl" placeholder="Google Maps 路線或地點連結 (選填)" style="font-size: 13px;">
         <button onclick="addNewSpot()">新增至當天行程</button>
       </div>
@@ -316,8 +316,8 @@
       <label style="font-size: 12px; color: #666;">備註 (可 Enter 隔行)：</label>
       <textarea id="edit-desc" rows="3" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit;"></textarea>
 
-      <label style="font-size: 12px; color: #666;">圖片檔名或網路圖片網址：</label>
-      <input type="text" id="edit-imgUrl" placeholder="GitHub 檔名 (如 pic.jpg) 或 圖片網址" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px;">
+      <label style="font-size: 12px; color: #666;">圖片欄位 (單圖填檔名；多圖填 人名:檔名, 人名:檔名)：</label>
+      <input type="text" id="edit-imgUrl" placeholder="例: 美婷:a.jpg, 麗婷:b.jpg, 桃:c.jpg" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px;">
 
       <label style="font-size: 12px; color: #666;">Google Maps 路線連結：</label>
       <input type="url" id="edit-mapUrl" placeholder="Google Maps 路線連結 (選填)" style="width: 100%; padding: 8px; margin-bottom: 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px;">
@@ -428,13 +428,13 @@
         if (spot.type === 'transport') { typeClass = 'type-transport'; typeName = '🚌 交通'; }
         if (spot.type === 'flight') { typeClass = 'type-flight'; typeName = '✈️ 航班'; }
 
-        // 入境 QR Code & Skyliner 按鈕區
+        // 特殊預設按鈕區 (入境 QR Code & Skyliner)
         let qrSection = '';
         const titleText = spot.title || '';
         
         if (titleText.includes('入境QR Code')) {
           qrSection = `
-            <div class="member-btns" style="margin-top: 10px;">
+            <div class="member-btns" style="margin-top: 10px; grid-template-columns: repeat(3, 1fr);">
               <div class="member-btn" onclick="toggleQR('美婷')">美婷</div>
               <div class="member-btn" onclick="toggleQR('麗婷')">麗婷</div>
               <div class="member-btn" onclick="toggleQR('桃')">桃</div>
@@ -449,16 +449,38 @@
           `;
         }
 
-        // 自訂圖片按鈕區 (判斷 GitHub 檔名或外鏈網址)
+        // 自訂圖片按鈕區 (支援多圖人名: 美婷:a.jpg, 麗婷:b.jpg 或單圖)
         let imgBtnSection = '';
         if (spot.imgUrl && spot.imgUrl.trim() !== '') {
-          imgBtnSection = `
-            <div style="margin-top: 8px;">
-              <button onclick="openCustomImageModal('${spot.id}')" style="background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; color: #333; font-weight: 500;">
-                🖼️ 查看附圖 / 菜單
-              </button>
-            </div>
-          `;
+          const rawImg = spot.imgUrl.trim();
+          if (rawImg.includes(':') || rawImg.includes('：')) {
+            // 多人/多圖模式
+            const items = rawImg.split(',').map(s => s.trim()).filter(Boolean);
+            let btnHtmls = items.map(item => {
+              const parts = item.includes('：') ? item.split('：') : item.split(':');
+              const name = parts[0].trim();
+              const url = parts.slice(1).join(':').trim();
+              const safeUrl = url.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+              const safeName = name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+              return `<div class="member-btn" onclick="openDirectImageModal('${safeName}', '${safeUrl}')">${name}</div>`;
+            }).join('');
+
+            const cols = Math.min(items.length, 3);
+            imgBtnSection = `
+              <div class="member-btns" style="margin-top: 10px; grid-template-columns: repeat(${cols}, 1fr);">
+                ${btnHtmls}
+              </div>
+            `;
+          } else {
+            // 單圖模式
+            imgBtnSection = `
+              <div style="margin-top: 8px;">
+                <button onclick="openCustomImageModal('${spot.id}')" style="background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; color: #333; font-weight: 500;">
+                  🖼️ 查看附圖 / 菜單
+                </button>
+              </div>
+            `;
+          }
         }
 
         // Google Maps 導航按鈕
@@ -562,17 +584,19 @@
       }
     };
 
-    // 開啟自訂圖片 Modal (自動分辨 GitHub 檔名 或 完整網址)
+    // 直接傳入標題與圖片路徑開啟 Pop-up Modal
+    window.openDirectImageModal = function(title, src) {
+      document.getElementById('modal-qr-name').innerText = title;
+      document.getElementById('modal-qr-img').src = src;
+      document.getElementById('qr-modal').style.display = 'flex';
+    };
+
+    // 開啟單圖 Modal
     window.openCustomImageModal = function(id) {
       const spot = (window.currentSpots || []).find(s => s.id === id);
       if (!spot || !spot.imgUrl) return;
 
-      let src = spot.imgUrl.trim();
-      // 如果不是以 http:// 或 https:// 開頭，自動視為上傳在 GitHub 根目錄的檔案
-      if (!src.startsWith('http://') && !src.startsWith('https://')) {
-        src = src; 
-      }
-
+      const src = spot.imgUrl.trim();
       document.getElementById('modal-qr-name').innerText = spot.title || '行程附圖';
       document.getElementById('modal-qr-img').src = src;
       document.getElementById('qr-modal').style.display = 'flex';
